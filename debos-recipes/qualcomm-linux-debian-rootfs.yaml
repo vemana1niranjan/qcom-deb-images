@@ -200,6 +200,8 @@ actions:
       # convenience networking commands (arp, ifconfig, route etc.)
       - net-tools
       - openssh-client
+      # disabled by default
+      - openssh-server
       # lspci
       - pciutils
       - rfkill
@@ -211,6 +213,17 @@ actions:
       - vim
       - vulkan-tools
       - wget
+
+  - action: run
+    description: Disable ssh by default and sanitize ssh keys
+    chroot: true
+    command: |
+      set -eux
+      systemctl disable ssh --now
+      if [ -f /etc/ssh/ssh_host_rsa_key ] || [ -f /etc/ssh/ssh_host_ecdsa_key ] || [ -f /etc/ssh/ssh_host_ed25519_key ]; then
+        echo "ERROR: SSH host keys were unexpectedly generated" >&2
+        exit 1
+      fi
 
   - action: run
     description: Add default user to docker group
