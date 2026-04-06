@@ -15,11 +15,12 @@ for d in flash_*
 do
     rawprogram0="$d/rawprogram0.xml"
     echo "examining $rawprogram0"
-    if grep disk-sdcard "$rawprogram0"
+    rootfs_img=$("$(dirname "$0")"/get-rawprogram-filename.py rootfs "$rawprogram0")
+    if echo "$rootfs_img" | grep -q disk-sdcard
     then
         echo "choosing emmc"
         target=emmc
-    elif grep disk-ufs "$rawprogram0"
+    elif echo "$rootfs_img" | grep -q disk-ufs
     then
         echo "choosing ufs"
         target=ufs

@@ -439,6 +439,35 @@ actions:
       fi
 {{- end }}
 
+      # copy each spinor flash dir into its parent storage flash dirs;
+      # storage types are read from product_info/chipid in contents.xml
+      for spinor_dir in "${ARTIFACTDIR}"/flash_*_spinor; do
+          contents_xml="${spinor_dir}/contents.xml"
+          [ -f "${contents_xml}" ] || continue
+          spinor_dir_name="$(basename "${spinor_dir}")"
+          board="${spinor_dir_name#flash_}"; board="${board%_spinor}"
+          xmlstarlet sel -t -m "//product_info/chipid" -v "@storage_type" -n "${contents_xml}" | \
+              tr '[:upper:]' '[:lower:]' | sort -u | \
+              while read -r storage; do
+                  [ "${storage}" = "spinor" ] && continue
+                  target_dir="${ARTIFACTDIR}/flash_${board}_${storage}"
+                  [ -d "${target_dir}" ] || continue
+                  cp --preserve=all --no-dereference -av "${spinor_dir}/." "${target_dir}/spinor/"
+                  efi_img=$("${RECIPEDIR}/../scripts/get-rawprogram-filename.py" efi "${target_dir}/rawprogram0.xml")
+                  rootfs_img=$("${RECIPEDIR}/../scripts/get-rawprogram-filename.py" rootfs "${target_dir}/rawprogram0.xml")
+                  # fix file_path (../->../../) then rename efi.bin/rootfs.img
+                  copied_contents="${target_dir}/spinor/contents.xml"
+                  if [ -f "${copied_contents}" ]; then
+                      xmlstarlet ed -L \
+                          -u "//*[@storage_type='${storage}'][file_name/text()='efi.bin']/file_path[text()='../']" -v "../../" \
+                          -u "//*[@storage_type='${storage}']/file_name[text()='efi.bin']" -v "${efi_img}" \
+                          -u "//*[@storage_type='${storage}'][file_name/text()='rootfs.img']/file_path[text()='../']" -v "../../" \
+                          -u "//*[@storage_type='${storage}']/file_name[text()='rootfs.img']" -v "${rootfs_img}" \
+                          "${copied_contents}"
+                  fi
+              done
+      done
+
       # cleanup
       rm -rf build
 
