@@ -351,6 +351,10 @@ actions:
 {{- range $platform := $board.ptool_platforms }}
       ### platform: {{ $platform }}
       platform="{{$platform}}"
+      # infer storage from ptool platform dir; first strip leading directory
+      storage_use_case="${platform#*/}"
+      # then strip trailing use case (after first dash)
+      disk_type="${storage_use_case%%-*}"
 
       # generate ptool files - various XML files for flashing, GPT data etc.
       mkdir -vp "build/ptool/${platform}"
@@ -361,10 +365,10 @@ actions:
               "$platform" \
               "$board_cdt_filename" \
               "$buildid" \
+              "$disk_type" \
       )
 
       if [ "${skip_board}" = false ]; then
-          disk_type=$(cat "build/ptool/${platform}/disk_type")
           # create board-specific flash directory
           flash_dir="${ARTIFACTDIR}/flash_${board_name}_${disk_type}"
           rm -rf "${flash_dir}"
@@ -399,9 +403,6 @@ actions:
                   -or -name '*.mbn' \
               \) \
               -exec cp --preserve=mode,timestamps -v '{}' "${flash_dir}" \;
-
-          # remove the temporary disk_type file from the flash dir
-          rm -f "${flash_dir}/disk_type"
       fi
       if [ "${skip_board}" = false ]; then
           if [ -n "${board_u_boot_file}" ]; then
