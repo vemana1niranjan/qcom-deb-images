@@ -29,59 +29,59 @@ disk_type="unknown"
 # |--------|--------------|-------------------|-----------------|
 
 while read -r line; do
-	case "$line" in
-		# detect storage type
-		"--disk "*)
-			disk_type="$(echo "$line" | sed -n 's/.*--type=\([^ ]*\).*/\1/p')"
-			case $disk_type in
-				emmc|nvme)
-					esp="../disk-sdcard.img1"
-					rootfs="../disk-sdcard.img2"
-					;;
-				ufs)
-					esp="../disk-ufs.img1"
-					rootfs="../disk-ufs.img2"
-					;;
-				spinor)
-					# spinor carries firmware only; no OS efi/rootfs partitions
-					esp=""
-					rootfs=""
-					;;
-				*)
-					echo "unsupported disk type $disk_type"
-					exit 1
-					;;
-				esac
-			echo "$disk_type" >disk_type
-		;;
-		# read partitions
-		"--partition "*)
-			name="$(echo "$line" | sed -n 's/.*--name=\([^ ]*\).*/\1/p')"
-			filename=""
-			case "$name" in
-				dtb_a|dtb_b)
-					filename="dtb.bin"
-					;;
-				efi)
-					filename="$esp"
-					;;
-				rootfs)
-					filename="$rootfs"
-					;;
-				cdt)
-					if [ -n "${CDT_FILENAME}" ]; then
-						filename="$(basename "${CDT_FILENAME}")"
-					else
-						echo "cdt partition found but missing cdt_filename, skipping"
-					fi
-					;;
-			esac
-			# override/set filename
-			if [ -n "$filename" ]; then
-				line="$(echo "$line" | sed 's/ --filename=[^ ]*//')"
-				line="${line} --filename=${filename}"
-			fi
-			;;
-	esac
-	echo "$line"
+    case "$line" in
+        # detect storage type
+        "--disk "*)
+            disk_type="$(echo "$line" | sed -n 's/.*--type=\([^ ]*\).*/\1/p')"
+            case $disk_type in
+                emmc|nvme)
+                    esp="../disk-sdcard.img1"
+                    rootfs="../disk-sdcard.img2"
+                    ;;
+                ufs)
+                    esp="../disk-ufs.img1"
+                    rootfs="../disk-ufs.img2"
+                    ;;
+                spinor)
+                    # spinor carries firmware only; no OS efi/rootfs partitions
+                    esp=""
+                    rootfs=""
+                    ;;
+                *)
+                    echo "unsupported disk type $disk_type"
+                    exit 1
+                    ;;
+                esac
+            echo "$disk_type" >disk_type
+        ;;
+        # read partitions
+        "--partition "*)
+            name="$(echo "$line" | sed -n 's/.*--name=\([^ ]*\).*/\1/p')"
+            filename=""
+            case "$name" in
+                dtb_a|dtb_b)
+                    filename="dtb.bin"
+                    ;;
+                efi)
+                    filename="$esp"
+                    ;;
+                rootfs)
+                    filename="$rootfs"
+                    ;;
+                cdt)
+                    if [ -n "${CDT_FILENAME}" ]; then
+                        filename="$(basename "${CDT_FILENAME}")"
+                    else
+                        echo "cdt partition found but missing cdt_filename, skipping"
+                    fi
+                    ;;
+            esac
+            # override/set filename
+            if [ -n "$filename" ]; then
+                line="$(echo "$line" | sed 's/ --filename=[^ ]*//')"
+                line="${line} --filename=${filename}"
+            fi
+            ;;
+    esac
+    echo "$line"
 done
