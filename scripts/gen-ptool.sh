@@ -2,9 +2,21 @@
 # Copyright (c) Qualcomm Technologies, Inc. and/or its subsidiaries.
 # SPDX-License-Identifier: BSD-3-Clause
 
+# generates a modified partitions.conf, a disk-type stamp,
+# ptool-partitions.xml, ptool files and contents.xml for target platform and
+# parameters
+
 set -eux
 
-CDT_FILENAME="$1"
+# path to ptool tree
+QCOM_PTOOL="$1"
+# ptool subdir for a particular platform and storage, e.g.
+# "qrb2210/emmc-16GB-arduino"
+PLATFORM="$2"
+# relative path to CDT, to use as filename in the generated files
+CDT_FILENAME="$3"
+# build id for generated contents.xml
+BUILDID="$4"
 
 disk_type="unknown"
 
@@ -84,4 +96,21 @@ while read -r line; do
             ;;
     esac
     echo "$line"
-done
+done <"${QCOM_PTOOL}/platforms/${PLATFORM}/partitions.conf" >partitions.conf
+
+# generate ptool-partitions.xml from partitions.conf
+"${QCOM_PTOOL}/gen_partition.py" -i partitions.conf \
+    -o ptool-partitions.xml
+
+# generate contents.xml from ptool-partitions.xml and contents.xml.in
+CONTENTS="${QCOM_PTOOL}/platforms/${PLATFORM}/contents.xml.in"
+if [ -e "$CONTENTS" ]; then
+    "${QCOM_PTOOL}/gen_contents.py" -p ptool-partitions.xml \
+        -t "$CONTENTS" \
+        -b "$BUILDID" \
+        -o contents.xml
+fi
+
+# generate flashing files from qcom-partitions.xml
+"${QCOM_PTOOL}/ptool.py" -x ptool-partitions.xml
+

@@ -356,23 +356,11 @@ actions:
       mkdir -vp "build/ptool/${platform}"
       (
           cd "build/ptool/${platform}"
-          conf="${QCOM_PTOOL}/platforms/${platform}/partitions.conf"
-
-          "${RECIPEDIR}/../scripts/override-partition-conf.sh" "$board_cdt_filename" <"$conf" >partitions.conf
-
-          contents="${QCOM_PTOOL}/platforms/${platform}/contents.xml.in"
-          # generate ptool-partitions.xml from partitions.conf
-          "${QCOM_PTOOL}/gen_partition.py" -i partitions.conf \
-              -o ptool-partitions.xml
-          # generate contents.xml from ptool-partitions.xml and contents.xml.in
-          if [ -e "$contents" ]; then
-              "${QCOM_PTOOL}/gen_contents.py" -p ptool-partitions.xml \
-                  -t "$contents" \
-                  -b "$buildid" \
-                  -o contents.xml
-          fi
-          # generate flashing files from qcom-partitions.xml
-          "${QCOM_PTOOL}/ptool.py" -x ptool-partitions.xml
+          "${RECIPEDIR}/../scripts/gen-ptool.sh" \
+              "$QCOM_PTOOL" \
+              "$platform" \
+              "$board_cdt_filename" \
+              "$buildid" \
       )
 
       if [ "${skip_board}" = false ]; then
