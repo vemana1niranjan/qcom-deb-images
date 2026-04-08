@@ -18,6 +18,9 @@ CDT_FILENAME="$3"
 # build id for generated contents.xml
 BUILDID="$4"
 
+# path to partitions.conf
+PARTITIONS_CONF="${QCOM_PTOOL}/platforms/${PLATFORM}/partitions.conf"
+
 disk_type="unknown"
 
 # make a copy of partitions.conf; infer storage type from lines
@@ -66,41 +69,30 @@ while read -r line; do
                 esac
             echo "$disk_type" >disk_type
         ;;
-        # read partitions
-        "--partition "*)
-            name="$(echo "$line" | sed -n 's/.*--name=\([^ ]*\).*/\1/p')"
-            filename=""
-            case "$name" in
-                dtb_a|dtb_b)
-                    filename="dtb.bin"
-                    ;;
-                efi)
-                    filename="$esp"
-                    ;;
-                rootfs)
-                    filename="$rootfs"
-                    ;;
-                cdt)
-                    if [ -n "${CDT_FILENAME}" ]; then
-                        filename="$(basename "${CDT_FILENAME}")"
-                    else
-                        echo "cdt partition found but missing cdt_filename, skipping"
-                    fi
-                    ;;
-            esac
-            # override/set filename
-            if [ -n "$filename" ]; then
-                line="$(echo "$line" | sed 's/ --filename=[^ ]*//')"
-                line="${line} --filename=${filename}"
-            fi
-            ;;
     esac
     echo "$line"
-done <"${QCOM_PTOOL}/platforms/${PLATFORM}/partitions.conf" >partitions.conf
+done <"${PARTITIONS_CONF}"
+
+# build a map of partition names from partitions.conf to our names
+#
+# |--------|--------------|-------------------|-----------------|
+# | data   | ptool name   | ptool filename    | debos filename  |
+# |--------|--------------|-------------------|-----------------|
+# | ESP    | efi          | efi.bin           | disk-media.img1 |
+# | rootfs | rootfs       | rootfs.img        | disk-media.img2 |
+# | DTBs   | dtb_a, dtb_b | dtb.bin           | dtb.bin         |
+# | CDTs   | cdt          | unset / per board | from download   |
+# |--------|--------------|-------------------|-----------------|
+partition_map="cdt=$(basename "${CDT_FILENAME}")"
+partition_map="${partition_map},dtb_a=dtb.bin"
+partition_map="${partition_map},dtb_b=dtb.bin"
+partition_map="${partition_map},efi=${esp}"
+partition_map="${partition_map},rootfs=${rootfs}"
 
 # generate ptool-partitions.xml from partitions.conf
-"${QCOM_PTOOL}/gen_partition.py" -i partitions.conf \
-    -o ptool-partitions.xml
+"${QCOM_PTOOL}/gen_partition.py" -i "${PARTITIONS_CONF}" \
+    -o ptool-partitions.xml \
+    -m "${partition_map}"
 
 # generate contents.xml from ptool-partitions.xml and contents.xml.in
 CONTENTS="${QCOM_PTOOL}/platforms/${PLATFORM}/contents.xml.in"
