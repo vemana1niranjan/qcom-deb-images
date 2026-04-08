@@ -13,18 +13,18 @@ ufs_dirs=""
 
 for d in flash_*
 do
-    partitions_conf="$d/partitions.conf"
-    echo "examining $partitions_conf"
-    if grep disk-sdcard "$partitions_conf"
+    rawprogram0="$d/rawprogram0.xml"
+    echo "examining $rawprogram0"
+    if grep disk-sdcard "$rawprogram0"
     then
-        echo "partitions.conf refers to disk-sdcard, choosing emmc"
+        echo "choosing emmc"
         target=emmc
-    elif grep disk-ufs "$partitions_conf"
+    elif grep disk-ufs "$rawprogram0"
     then
-        echo "partitions.conf refers to disk-ufs, choosing emmc"
+        echo "choosing ufs"
         target=ufs
     else
-        echo "partitions.conf has unknown format, putting in emmc by default"
+        echo "couldn't find disk-ufs or disk-emmc, choosing emmc by default"
         target=emmc
     fi
 
