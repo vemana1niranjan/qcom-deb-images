@@ -346,29 +346,27 @@ actions:
               unzip "${ROOTDIR}/../${board_cdt_download_filename}" \
                   -d "build/${board_name}_cdt"
           fi
-      fi
 
 {{- range $platform := $board.ptool_platforms }}
-      ### platform: {{ $platform }}
-      platform="{{$platform}}"
-      # infer storage from ptool platform dir; first strip leading directory
-      storage_use_case="${platform#*/}"
-      # then strip trailing use case (after first dash)
-      disk_type="${storage_use_case%%-*}"
+          ### platform: {{ $platform }}
+          platform="{{$platform}}"
+          # infer storage from ptool platform dir; first strip leading directory
+          storage_use_case="${platform#*/}"
+          # then strip trailing use case (after first dash)
+          disk_type="${storage_use_case%%-*}"
 
-      # generate ptool files - various XML files for flashing, GPT data etc.
-      mkdir -vp "build/ptool/${platform}"
-      (
-          cd "build/ptool/${platform}"
-          "${RECIPEDIR}/../scripts/gen-ptool.sh" \
-              "$QCOM_PTOOL" \
-              "$platform" \
-              "$board_cdt_filename" \
-              "$buildid" \
-              "$disk_type" \
-      )
+          # generate ptool files - various XML files for flashing, GPT data etc.
+          mkdir -vp "build/ptool/${platform}"
+          (
+              cd "build/ptool/${platform}"
+              "${RECIPEDIR}/../scripts/gen-ptool.sh" \
+                  "$QCOM_PTOOL" \
+                  "$platform" \
+                  "$board_cdt_filename" \
+                  "$buildid" \
+                  "$disk_type" \
+          )
 
-      if [ "${skip_board}" = false ]; then
           # create board-specific flash directory
           flash_dir="${ARTIFACTDIR}/flash_${board_name}_${disk_type}"
           rm -rf "${flash_dir}"
@@ -376,6 +374,7 @@ actions:
           # copy platform partition files
           cp --preserve=mode,timestamps -v \
               "build/ptool/${platform}"/* "${flash_dir}"
+
           # remove BLANK_GPT, WIPE_PARTITIONS and wipe_rawprogram files as
           # it's common for people to run "qdl rawprogram*.xml" or pcat,
           # mistakingly including these; perhaps ptool should have a flag
@@ -383,6 +382,7 @@ actions:
           rm -v "${flash_dir}"/rawprogram*_BLANK_GPT.xml
           rm -v "${flash_dir}"/rawprogram*_WIPE_PARTITIONS.xml
           rm -v "${flash_dir}"/wipe_rawprogram*.xml
+
           # copy silicon family boot binaries; these shouldn't ship partition
           # files, but make sure not to accidentally clobber any such file
           find "build/${board_name}_boot-binaries" \
@@ -403,26 +403,21 @@ actions:
                   -or -name '*.mbn' \
               \) \
               -exec cp --preserve=mode,timestamps -v '{}' "${flash_dir}" \;
-      fi
-      if [ "${skip_board}" = false ]; then
+
           if [ -n "${board_u_boot_file}" ]; then
               # copy U-Boot binary to boot.img; qcom-ptool partitions.conf
               # files use filename=boot.img for boot_a and boot_b partitions
               cp --preserve=mode,timestamps -v \
                   "${ARTIFACTDIR}/${board_u_boot_file}" "${flash_dir}/boot.img"
           fi
-      fi
 
-      if [ "${skip_board}" = false ]; then
           if [ -n "$board_cdt_filename" ]; then
               # copy just the CDT data; no partition or flashing files
               cp --preserve=mode,timestamps -v \
                   "build/${board_name}_cdt/${board_cdt_filename}" \
                   "${flash_dir}"
           fi
-      fi
 
-      if [ "${skip_board}" = false ]; then
           # generate a dtb.bin FAT partition with just a single dtb for the
           # current board; long-term this should really be a set of dtbs and
           # overlays as to share dtb.bin across boards
@@ -440,8 +435,8 @@ actions:
           tar -C build -xvf "${ARTIFACTDIR}/dtbs.tar.gz" "$board_dtb"
           # copy into the FAT as combined-dtb.dtb
           mcopy -vmp -i "${dtb_bin}" "build/${board_dtb}" ::/combined-dtb.dtb
-      fi
 {{- end }}
+      fi
 {{- end }}
 
       # cleanup
