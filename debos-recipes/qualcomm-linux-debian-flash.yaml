@@ -364,17 +364,6 @@ actions:
           # copy platform partition files
           cp --preserve=mode,timestamps -v \
               build/ptool/{{ $platform }}/* "${flash_dir}"
-          # adjust paths in contents.xml to use board-specific flash_* subdir
-          if [ -e "${flash_dir}/contents.xml" ]; then
-              # one set of backslashes for shell quoting, another one for sed
-              # parsing
-              windows_path=".\\\\flash_{{ $board.name }}_${disk_type}\\\\"
-              linux_path="./flash_{{ $board.name }}_${disk_type}/"
-              sed -i \
-                  -e "s:<windows_root_path>.*:<windows_root_path>${windows_path}</windows_root_path>:" \
-                  -e "s:<linux_root_path>.*:<linux_root_path>${linux_path}</linux_root_path>:" \
-                  "${flash_dir}/contents.xml"
-          fi
           # remove BLANK_GPT, WIPE_PARTITIONS and wipe_rawprogram files as
           # it's common for people to run "qdl rawprogram*.xml" or pcat,
           # mistakingly including these; perhaps ptool should have a flag
