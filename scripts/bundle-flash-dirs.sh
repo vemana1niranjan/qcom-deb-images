@@ -13,31 +13,31 @@ ufs_dirs=""
 
 for d in flash_*
 do
-	partitions_conf="$d/partitions.conf"
-	echo "examining $partitions_conf"
-	if grep disk-sdcard "$partitions_conf"
-	then
-		echo "partitions.conf refers to disk-sdcard, choosing emmc"
-		target=emmc
-	elif grep disk-ufs "$partitions_conf"
-	then
-		echo "partitions.conf refers to disk-ufs, choosing emmc"
-		target=ufs
-	else
-		echo "partitions.conf has unknown format, putting in emmc by default"
-		target=emmc
-	fi
+    partitions_conf="$d/partitions.conf"
+    echo "examining $partitions_conf"
+    if grep disk-sdcard "$partitions_conf"
+    then
+        echo "partitions.conf refers to disk-sdcard, choosing emmc"
+        target=emmc
+    elif grep disk-ufs "$partitions_conf"
+    then
+        echo "partitions.conf refers to disk-ufs, choosing emmc"
+        target=ufs
+    else
+        echo "partitions.conf has unknown format, putting in emmc by default"
+        target=emmc
+    fi
 
-	echo "choosen target $target for $d"
+    echo "choosen target $target for $d"
 
-	case "$target" in
-		emmc)
-			emmc_dirs="$emmc_dirs $d"
-			;;
-		ufs)
-			ufs_dirs="$ufs_dirs $d"
-			;;
-	esac
+    case "$target" in
+        emmc)
+            emmc_dirs="$emmc_dirs $d"
+            ;;
+        ufs)
+            ufs_dirs="$ufs_dirs $d"
+            ;;
+    esac
 done
 
 echo "emmc_dirs: $emmc_dirs"
