@@ -372,7 +372,7 @@ actions:
           rm -rf "${flash_dir}"
           mkdir -v "${flash_dir}"
           # copy platform partition files
-          cp --preserve=mode,timestamps -v \
+          cp --preserve=all --no-dereference -v \
               "build/ptool/${platform}"/* "${flash_dir}"
 
           # remove BLANK_GPT, WIPE_PARTITIONS and wipe_rawprogram files as
@@ -402,18 +402,18 @@ actions:
                   -or -name '*.fv' \
                   -or -name '*.mbn' \
               \) \
-              -exec cp --preserve=mode,timestamps -v '{}' "${flash_dir}" \;
+              -exec cp --preserve=all --no-dereference -v '{}' "${flash_dir}" \;
 
           if [ -n "${board_u_boot_file}" ]; then
               # copy U-Boot binary to boot.img; qcom-ptool partitions.conf
               # files use filename=boot.img for boot_a and boot_b partitions
-              cp --preserve=mode,timestamps -v \
+              cp --preserve=all --no-dereference -v \
                   "${ARTIFACTDIR}/${board_u_boot_file}" "${flash_dir}/boot.img"
           fi
 
           if [ -n "$board_cdt_filename" ]; then
               # copy just the CDT data; no partition or flashing files
-              cp --preserve=mode,timestamps -v \
+              cp --preserve=all --no-dereference -v \
                   "build/${board_name}_cdt/${board_cdt_filename}" \
                   "${flash_dir}"
           fi

@@ -24,12 +24,12 @@ PARTITIONS_CONF="${QCOM_PTOOL}/platforms/${PLATFORM}/partitions.conf"
 
 case "$DISK_TYPE" in
   emmc|nvme)
-    esp="../disk-sdcard.img1"
-    rootfs="../disk-sdcard.img2"
+    esp="disk-sdcard.img1"
+    rootfs="disk-sdcard.img2"
     ;;
   ufs)
-    esp="../disk-ufs.img1"
-    rootfs="../disk-ufs.img2"
+    esp="disk-ufs.img1"
+    rootfs="disk-ufs.img2"
     ;;
   spinor)
     # spinor carries firmware only; no OS efi/rootfs partitions
@@ -57,6 +57,10 @@ partition_map="${partition_map},dtb_a=dtb.bin"
 partition_map="${partition_map},dtb_b=dtb.bin"
 partition_map="${partition_map},efi=${esp}"
 partition_map="${partition_map},rootfs=${rootfs}"
+
+# create symlinks from flat image to actual file
+ln -s "../${esp}" "$esp"
+ln -s "../${rootfs}" "$rootfs"
 
 # generate ptool-partitions.xml from partitions.conf
 "${QCOM_PTOOL}/gen_partition.py" -i "${PARTITIONS_CONF}" \
