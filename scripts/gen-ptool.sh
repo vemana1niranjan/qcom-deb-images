@@ -59,8 +59,12 @@ partition_map="${partition_map},efi=${esp}"
 partition_map="${partition_map},rootfs=${rootfs}"
 
 # create symlinks from flat image to actual file
-ln -s "../${esp}" "$esp"
-ln -s "../${rootfs}" "$rootfs"
+if [ -n "$esp" ]; then
+    ln -s "../${esp}" "$esp"
+fi
+if [ -n "$rootfs" ]; then
+    ln -s "../${rootfs}" "$rootfs"
+fi
 
 # generate ptool-partitions.xml from partitions.conf
 "${QCOM_PTOOL}/gen_partition.py" -i "${PARTITIONS_CONF}" \
