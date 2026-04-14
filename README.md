@@ -281,6 +281,27 @@ Notes:
 
 We'd love to hear if you run into issues or have ideas for improvements. [Report an Issue on GitHub](../../issues) to discuss, and try to include as much information as possible on your specific environment.
 
+# Problem
+Devs facing issue in using "CONTAINER_IMAGE ?= ghcr.io/go-debos/debos:latest"
+Error message says mcopy cant be used 
+
+Solution Creating Container image with mtools installed
+step1: create a Docker file
+commandd:cat <<'EOF' > Dockerfile.debos-mtools
+FROM ghcr.io/go-debos/debos:latest
+
+RUN apt-get update && \
+    apt-get install -y mtools && \
+    apt-get clean && rm -rf /var/lib/apt/lists/*
+EOF
+step 2:build image 
+command:sudo docker build -t debos-with-mtools -f Dockerfile.debos-mtools .
+step 3:Change Make file line 17
+old line:CONTAINER_IMAGE ?= ghcr.io/go-debos/debos:latest
+new line :CONTAINER_IMAGE ?= debos-with-mtools
+
+Now devs can use command "make flash" to get flash artifacts
+
 ## License
 
 This project is licensed under the [BSD-3-clause License](https://spdx.org/licenses/BSD-3-Clause.html). See [LICENSE.txt](LICENSE.txt) for the full license text.
