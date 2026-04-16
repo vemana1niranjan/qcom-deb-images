@@ -148,6 +148,8 @@ jobs:
           cp -av dtbs.tar.gz "${dir}"
           # create tarballs with support for all UFS and all eMMC boards
           scripts/bundle-flash-dirs.sh "${dir}"
+          # generate sha256sums for all artifacts
+          (cd "${dir}" && sha256sum * | tee sha256sums.txt)
 
       # upload to a cloud storage space accessible by Axiom
       - name: Upload private artifacts (S3)
@@ -222,7 +224,7 @@ jobs:
           echo "## Download URL" >> $GITHUB_STEP_SUMMARY
           echo "[${build_url}](${build_url})" >> $GITHUB_STEP_SUMMARY
       - name: Upload build URL
-        uses: actions/upload-artifact@v6
+        uses: actions/upload-artifact@v7
         with:
           name: build_url
           path: build_url

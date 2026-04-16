@@ -140,9 +140,7 @@ A few options are provided in the debos recipes; for the root filesystem recipe:
 - `xfcedesktop`: install an Xfce desktop environment; default: console only
   environment
 - `overlays`: a `,`-separated list of rootfs overlays to add from
-  `debos-recipes/overlays/`. Defaults to `qsc-deb-releases` to add our overlay
-  apt repository that contains some package delta that isn't fully upstreamed
-  and backported to trixie in Debian yet.
+  `debos-recipes/overlays/`. See the *Supported overlays* section below.
 - `kernelpackage`: name of the kernel package to install from apt; defaults to
   `Debian’s linux-image-arm64`. Can (and should) be set to `none` if you are
   providing local kernel package instead.
@@ -199,6 +197,31 @@ extra options to debos invocations, use `EXTRA_DEBOS_OPTS`, e.g.:
 ```
 make EXTRA_DEBOS_OPTS="-t xfcedesktop:true" disk-ufs.img
 ```
+
+#### Supported overlays
+
+Multiple overlays are available to include additional files not provided by
+Debian packages into the image’s root file system. They are located in
+`debos-recipes/overlays/`.
+
+By default, the *qsc-deb-releases* overlay is used if no overlays are specified
+using the `-t overlays:<value>` option. Multiple overlays can be specified,
+separated by a comma (`,`).
+
+Here is the list of supported overlays:
+
+<dl>
+    <dt>none</dt>
+    <dd>
+        Special value to disable all overlays.
+    </dd>
+    <dt>qsc-deb-releases</dt>
+    <dd>
+        Enable our overlay apt repository that contains some package delta that
+        isn't fully upstreamed and backported to trixie in Debian yet.
+        Including this overlay will also select the fastrpc-test package.
+    </dd>
+</dl>
 
 ### Flash the image
 
