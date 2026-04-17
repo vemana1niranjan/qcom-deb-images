@@ -374,8 +374,9 @@ actions:
       # this image has pulled a more recent kernel, it's probably to gain
       # support for new hardware which would happen through new or updated dtbs
       # only in that new kernel, so use the latest dtbs
-      latest_kernel="$(
-          ls -d "$ROOTDIR"/usr/lib/linux-image-* | sort -V | tail -1)"
+      # list kernel directories to avoid silent pipeline failure
+      kernel_dirs=$(ls -d "$ROOTDIR"/usr/lib/linux-image-*)
+      latest_kernel=$(echo "$kernel_dirs" | sort -V | tail -1)
       # transform pathnames to strip the leading ./
       tar \
           -C "${latest_kernel}" \
