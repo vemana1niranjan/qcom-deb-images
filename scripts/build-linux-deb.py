@@ -8,14 +8,22 @@ import sys
 from pathlib import Path
 
 # git repo/ref to use
-GIT_REPO = "https://github.com/torvalds/linux"
-GIT_REF = "master"
-LINUX_NEXT_GIT_REPO = (
-    "https://git.kernel.org/pub/scm/linux/kernel/git/next/linux-next.git"
-)
-LINUX_NEXT_GIT_REF = "master"
-QCOM_NEXT_GIT_REPO = "https://github.com/qualcomm-linux/kernel"
-QCOM_NEXT_GIT_REF = "qcom-next"
+
+GIT_UPSTREAM = {
+    "linux": {
+        "repo": "https://github.com/torvalds/linux",
+        "ref": "master",
+    },
+    "linux-next": {
+        "repo": "https://git.kernel.org/pub/scm/linux/kernel/git/next/linux-next.git",  # noqa: E501
+        "ref": "master",
+    },
+    "qcom-next": {
+        "repo": "https://github.com/qualcomm-linux/kernel",
+        "ref": "qcom-next",
+    },
+}
+
 # base config to use
 BASE_CONFIG = "defconfig"
 # package set to build
@@ -147,13 +155,13 @@ def main():
     parser = argparse.ArgumentParser(description="Build Linux Deb")
     parser.add_argument(
         "--repo",
-        default=GIT_REPO,
-        help=f"Git repository to clone (default: {GIT_REPO})",
+        default=GIT_UPSTREAM["linux"]["repo"],
+        help=f'Git repository to clone (default: {GIT_UPSTREAM["linux"]["repo"]})',
     )
     parser.add_argument(
         "--ref",
-        default=GIT_REF,
-        help=f"Git ref (branch/tag) to checkout (default: {GIT_REF})",
+        default=GIT_UPSTREAM["linux"]["ref"],
+        help=f'Git ref (branch/tag) to checkout (default: {GIT_UPSTREAM["linux"]["ref"]})',
     )
     parser.add_argument(
         "--linux-next",
@@ -189,16 +197,16 @@ def main():
     # default settings for next trees
     ref_prefix = None
     if args.linux_next:
-        if args.repo == GIT_REPO:
-            args.repo = LINUX_NEXT_GIT_REPO
-        if args.ref == GIT_REF:
-            args.ref = LINUX_NEXT_GIT_REF
+        if args.repo == GIT_UPSTREAM["linux"]["repo"]:
+            args.repo = GIT_UPSTREAM["linux-next"]["repo"]
+        if args.ref == GIT_UPSTREAM["linux"]["ref"]:
+            args.ref = GIT_UPSTREAM["linux-next"]["ref"]
             ref_prefix = "next-"
     elif args.qcom_next:
-        if args.repo == GIT_REPO:
-            args.repo = QCOM_NEXT_GIT_REPO
-        if args.ref == GIT_REF:
-            args.ref = QCOM_NEXT_GIT_REF
+        if args.repo == GIT_UPSTREAM["linux"]["repo"]:
+            args.repo = GIT_UPSTREAM["qcom-next"]["repo"]
+        if args.ref == GIT_UPSTREAM["linux"]["ref"]:
+            args.ref = GIT_UPSTREAM["qcom-next"]["ref"]
             ref_prefix = "qcom-next-"
 
     if ref_prefix:
