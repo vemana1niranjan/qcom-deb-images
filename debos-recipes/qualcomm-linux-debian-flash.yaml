@@ -446,8 +446,9 @@ actions:
           [ -f "${contents_xml}" ] || continue
           spinor_dir_name="$(basename "${spinor_dir}")"
           board="${spinor_dir_name#flash_}"; board="${board%_spinor}"
-          xmlstarlet sel -t -m "//product_info/chipid" -v "@storage_type" -n "${contents_xml}" | \
-              tr '[:upper:]' '[:lower:]' | sort -u | \
+          # extract storage types to variable to avoid silent pipeline failure
+          storage_types=$(xmlstarlet sel -t -m "//product_info/chipid" -v "@storage_type" -n "${contents_xml}")
+          echo "$storage_types" | tr '[:upper:]' '[:lower:]' | sort -u | \
               while read -r storage; do
                   [ "${storage}" = "spinor" ] && continue
                   target_dir="${ARTIFACTDIR}/flash_${board}_${storage}"
