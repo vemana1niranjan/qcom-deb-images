@@ -152,16 +152,19 @@ def check_dependencies():
 
 
 def main():
+    DEFAULT_REPO = GIT_UPSTREAM["linux"]["repo"]
+    DEFAULT_REF = GIT_UPSTREAM["linux"]["ref"]
+
     parser = argparse.ArgumentParser(description="Build Linux Deb")
     parser.add_argument(
         "--repo",
-        default=GIT_UPSTREAM["linux"]["repo"],
-        help=f'Git repository to clone (default: {GIT_UPSTREAM["linux"]["repo"]})',
+        default=DEFAULT_REPO,
+        help=f"Git repository to clone (default: {DEFAULT_REPO})",
     )
     parser.add_argument(
         "--ref",
-        default=GIT_UPSTREAM["linux"]["ref"],
-        help=f'Git ref (branch/tag) to checkout (default: {GIT_UPSTREAM["linux"]["ref"]})',
+        default=DEFAULT_REF,
+        help=f"Git ref (branch/tag) to checkout (default: {DEFAULT_REF})",
     )
     parser.add_argument(
         "--linux-next",
@@ -197,15 +200,15 @@ def main():
     # default settings for next trees
     ref_prefix = None
     if args.linux_next:
-        if args.repo == GIT_UPSTREAM["linux"]["repo"]:
+        if args.repo == DEFAULT_REPO:
             args.repo = GIT_UPSTREAM["linux-next"]["repo"]
-        if args.ref == GIT_UPSTREAM["linux"]["ref"]:
+        if args.ref == DEFAULT_REF:
             args.ref = GIT_UPSTREAM["linux-next"]["ref"]
             ref_prefix = "next-"
     elif args.qcom_next:
-        if args.repo == GIT_UPSTREAM["linux"]["repo"]:
+        if args.repo == DEFAULT_REPO:
             args.repo = GIT_UPSTREAM["qcom-next"]["repo"]
-        if args.ref == GIT_UPSTREAM["linux"]["ref"]:
+        if args.ref == DEFAULT_REF:
             args.ref = GIT_UPSTREAM["qcom-next"]["ref"]
             ref_prefix = "qcom-next-"
 
