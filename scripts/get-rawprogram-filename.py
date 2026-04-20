@@ -19,17 +19,18 @@ import defusedxml.ElementTree as ET
 
 if len(sys.argv) != 3:
     print(f"Usage: {sys.argv[0]} <label> <rawprogram0.xml>", file=sys.stderr)
-    print("none")
-else:
-    label, xml_file = sys.argv[1], sys.argv[2]
+    sys.exit(0)
 
-    root = ET.parse(xml_file).getroot()
-    e = root.find(f".//program[@label='{label}']")
-    if e is None:
-        print("none")
-    else:
-        filename = e.get("filename")
-        # Strip any leading ../ path components
-        while filename.startswith("../"):
-            filename = filename[3:]
-        print(filename)
+label, xml_file = sys.argv[1], sys.argv[2]
+
+root = ET.parse(xml_file).getroot()
+e = root.find(f".//program[@label='{label}']")
+if e is None:
+    print("none")
+    sys.exit(0)
+
+filename = e.get("filename")
+# Strip any leading ../ path components
+while filename.startswith("../"):
+    filename = filename[3:]
+print(filename)
