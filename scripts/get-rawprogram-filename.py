@@ -19,7 +19,7 @@ import defusedxml.ElementTree as ET
 
 if len(sys.argv) != 3:
     print(f"Usage: {sys.argv[0]} <label> <rawprogram0.xml>", file=sys.stderr)
-    sys.exit(0)
+    sys.exit(1)
 
 label, xml_file = sys.argv[1], sys.argv[2]
 
