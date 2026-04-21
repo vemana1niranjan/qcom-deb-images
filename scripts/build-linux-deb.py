@@ -201,19 +201,19 @@ def main():
     args.fragments = args.fragments + unknown
 
     # default settings for next trees
-    ref_prefix = GIT_UPSTREAM["linux"]["ref_prefix"]
+    git_upstream_key = None
     if args.linux_next:
-        if args.repo == DEFAULT_REPO:
-            args.repo = GIT_UPSTREAM["linux-next"]["repo"]
-        if args.ref == DEFAULT_REF:
-            args.ref = GIT_UPSTREAM["linux-next"]["ref"]
-            ref_prefix = GIT_UPSTREAM["linux-next"]["ref_prefix"]
+        git_upstream_key = "linux-next"
     elif args.qcom_next:
+        git_upstream_key = "qcom-next"
+
+    ref_prefix = GIT_UPSTREAM["linux"]["ref_prefix"]
+    if git_upstream_key is not None:
         if args.repo == DEFAULT_REPO:
-            args.repo = GIT_UPSTREAM["qcom-next"]["repo"]
+            args.repo = GIT_UPSTREAM[git_upstream_key]["repo"]
         if args.ref == DEFAULT_REF:
-            args.ref = GIT_UPSTREAM["qcom-next"]["ref"]
-            ref_prefix = GIT_UPSTREAM["qcom-next"]["ref_prefix"]
+            args.ref = GIT_UPSTREAM[git_upstream_key]["ref"]
+            ref_prefix = GIT_UPSTREAM[git_upstream_key]["ref_prefix"]
 
     if ref_prefix:
         found_tag = get_latest_dated_tag(args.repo, ref_prefix)
