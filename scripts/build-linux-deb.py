@@ -13,14 +13,17 @@ GIT_UPSTREAM = {
     "linux": {
         "repo": "https://github.com/torvalds/linux",
         "ref": "master",
+        "ref_prefix": None,
     },
     "linux-next": {
         "repo": "https://git.kernel.org/pub/scm/linux/kernel/git/next/linux-next.git",  # noqa: E501
         "ref": "master",
+        "ref_prefix": "next-",
     },
     "qcom-next": {
         "repo": "https://github.com/qualcomm-linux/kernel",
         "ref": "qcom-next",
+        "ref_prefix": "qcom-next-",
     },
 }
 
@@ -198,19 +201,19 @@ def main():
     args.fragments = args.fragments + unknown
 
     # default settings for next trees
-    ref_prefix = None
+    ref_prefix = GIT_UPSTREAM["linux"]["ref_prefix"]
     if args.linux_next:
         if args.repo == DEFAULT_REPO:
             args.repo = GIT_UPSTREAM["linux-next"]["repo"]
         if args.ref == DEFAULT_REF:
             args.ref = GIT_UPSTREAM["linux-next"]["ref"]
-            ref_prefix = "next-"
+            ref_prefix = GIT_UPSTREAM["linux-next"]["ref_prefix"]
     elif args.qcom_next:
         if args.repo == DEFAULT_REPO:
             args.repo = GIT_UPSTREAM["qcom-next"]["repo"]
         if args.ref == DEFAULT_REF:
             args.ref = GIT_UPSTREAM["qcom-next"]["ref"]
-            ref_prefix = "qcom-next-"
+            ref_prefix = GIT_UPSTREAM["qcom-next"]["ref_prefix"]
 
     if ref_prefix:
         found_tag = get_latest_dated_tag(args.repo, ref_prefix)
