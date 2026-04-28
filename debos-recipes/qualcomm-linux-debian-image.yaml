@@ -108,8 +108,9 @@ actions:
       # when building under debos, /sys/firmware/efi is not always present, so
       # the u-boot-efi-dtb postinst doesn't install an initial copy of the
       # DTBs; do this once here
-      latest_kernel="$(
-          linux-version list | linux-version sort --reverse | head -1)"
+      # extract kernel list to variable to avoid silent pipeline failure
+      kernel_list=$(linux-version list)
+      latest_kernel=$(echo "$kernel_list" | linux-version sort --reverse | head -1)
       dtb_path="/usr/lib/linux-image-${latest_kernel}"
       cp -LRT "$dtb_path" "/boot/efi/dtb"
 
@@ -147,8 +148,9 @@ actions:
       set -eux
       sector_size="{{if eq $imagetype "ufs"}}4096{{else}}512{{end}}"
       image="{{ $image }}"
-      fdisk -b "${sector_size}" -l "${image}" |
-          sed -n '1,/^Device/ d; p' |
+      # extract fdisk output to variable to avoid silent pipeline failure
+      fdisk_output=$(fdisk -b "${sector_size}" -l "${image}")
+      echo "$fdisk_output" | sed -n '1,/^Device/ d; p' |
           while read name start end sectors rest; do
               dd if="${image}" of="${ARTIFACTDIR}/${name}" \
                   bs="${sector_size}" skip="${start}" count="${sectors}"

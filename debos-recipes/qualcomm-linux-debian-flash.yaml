@@ -15,7 +15,7 @@ architecture: arm64
 actions:
   - action: download
     description: Download qcom-ptool
-    url: https://github.com/qualcomm-linux/qcom-ptool/archive/6b5135fe5bf4166b1212fd0f04610e59d4b68478.tar.gz
+    url: https://github.com/qualcomm-linux/qcom-ptool/archive/6c9922f220c884236303a94075eb7c62e0120af0.tar.gz
     name: qcom-ptool
     filename: qcom-ptool.tar.gz
     unpack: true
@@ -372,7 +372,7 @@ actions:
           rm -rf "${flash_dir}"
           mkdir -v "${flash_dir}"
           # copy platform partition files
-          cp --preserve=all --no-dereference -v \
+          cp --preserve=mode,timestamps -v \
               "build/ptool/${platform}"/* "${flash_dir}"
 
           # remove BLANK_GPT, WIPE_PARTITIONS and wipe_rawprogram files as
@@ -402,18 +402,18 @@ actions:
                   -or -name '*.fv' \
                   -or -name '*.mbn' \
               \) \
-              -exec cp --preserve=all --no-dereference -v '{}' "${flash_dir}" \;
+              -exec cp --preserve=mode,timestamps -v '{}' "${flash_dir}" \;
 
           if [ -n "${board_u_boot_file}" ]; then
               # copy U-Boot binary to boot.img; qcom-ptool partitions.conf
               # files use filename=boot.img for boot_a and boot_b partitions
-              cp --preserve=all --no-dereference -v \
+              cp --preserve=mode,timestamps -v \
                   "${ARTIFACTDIR}/${board_u_boot_file}" "${flash_dir}/boot.img"
           fi
 
           if [ -n "$board_cdt_filename" ]; then
               # copy just the CDT data; no partition or flashing files
-              cp --preserve=all --no-dereference -v \
+              cp --preserve=mode,timestamps -v \
                   "build/${board_name}_cdt/${board_cdt_filename}" \
                   "${flash_dir}"
           fi
@@ -438,6 +438,36 @@ actions:
 {{- end }}
       fi
 {{- end }}
+
+      # copy each spinor flash dir into its parent storage flash dirs;
+      # storage types are read from product_info/chipid in contents.xml
+      for spinor_dir in "${ARTIFACTDIR}"/flash_*_spinor; do
+          contents_xml="${spinor_dir}/contents.xml"
+          [ -f "${contents_xml}" ] || continue
+          spinor_dir_name="$(basename "${spinor_dir}")"
+          board="${spinor_dir_name#flash_}"; board="${board%_spinor}"
+          # extract storage types to variable to avoid silent pipeline failure
+          storage_types=$(xmlstarlet sel -t -m "//product_info/chipid" -v "@storage_type" -n "${contents_xml}")
+          echo "$storage_types" | tr '[:upper:]' '[:lower:]' | sort -u | \
+              while read -r storage; do
+                  [ "${storage}" = "spinor" ] && continue
+                  target_dir="${ARTIFACTDIR}/flash_${board}_${storage}"
+                  [ -d "${target_dir}" ] || continue
+                  cp --preserve=mode,timestamps -av "${spinor_dir}/." "${target_dir}/spinor/"
+                  efi_img=$("${RECIPEDIR}/../scripts/get-rawprogram-filename.py" efi "${target_dir}/rawprogram0.xml")
+                  rootfs_img=$("${RECIPEDIR}/../scripts/get-rawprogram-filename.py" rootfs "${target_dir}/rawprogram0.xml")
+                  # fix file_path (../->../../) then rename efi.bin/rootfs.img
+                  copied_contents="${target_dir}/spinor/contents.xml"
+                  if [ -f "${copied_contents}" ]; then
+                      xmlstarlet ed -L \
+                          -u "//*[@storage_type='${storage}'][file_name/text()='efi.bin']/file_path[text()='../']" -v "../../" \
+                          -u "//*[@storage_type='${storage}']/file_name[text()='efi.bin']" -v "${efi_img}" \
+                          -u "//*[@storage_type='${storage}'][file_name/text()='rootfs.img']/file_path[text()='../']" -v "../../" \
+                          -u "//*[@storage_type='${storage}']/file_name[text()='rootfs.img']" -v "${rootfs_img}" \
+                          "${copied_contents}"
+                  fi
+              done
+      done
 
       # cleanup
       rm -rf build
